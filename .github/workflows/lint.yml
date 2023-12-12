@@ -1,4 +1,4 @@
-on: [push, pull_request]
+on: [push]
 
 jobs:
   luacheck:
@@ -7,5 +7,4 @@ jobs:
     - uses: actions/checkout@v2
     - name: Luacheck Linter
       uses: judaew/luacheck-action@v0.2.2
-        targets: ""
-        args: ""
+        targets: "."
