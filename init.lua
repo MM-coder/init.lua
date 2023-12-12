@@ -210,6 +210,7 @@ require('lazy').setup({
     version = ''
   },
   'wakatime/vim-wakatime',
+  'folke/trouble.nvim',
 }, {})
 
 require("config/theme")
@@ -218,6 +219,8 @@ require("config/treesitter")
 require("config/telescope")
 require("config/lsp")
 require("config/conform")
+require("config/trouble")
+require("config/which-key")
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
