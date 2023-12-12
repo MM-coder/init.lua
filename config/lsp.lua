@@ -45,6 +45,8 @@ require('mason-lspconfig').setup()
 
 local servers = {
   -- clangd = {},
+  jsonls = {},
+  hydra_lsp = {},
   gopls = {},
   ruff_lsp = {},
   -- rust_analyzer = {},
