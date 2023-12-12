@@ -1,10 +1,12 @@
+name: Lint
 on: [push]
 
 jobs:
   luacheck:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - name: Luacheck Linter
-      uses: judaew/luacheck-action@v0.2.2
-        targets: "."
+      - uses: actions/checkout@v2
+      - name: Luacheck Linter
+        uses: judaew/luacheck-action@v0.2.2
+        with:
+          targets: "."
