@@ -1,5 +1,7 @@
 -- Setup Conform
 
+local prettier = { { "prettier", "prettierd" } }
+
 require("conform").setup(
   {
     formatters_by_ft = {
@@ -15,6 +17,9 @@ require("conform").setup(
       lua = {
         "stylua"
       },
+      yaml = prettier,
+      javascript = prettier,
+      json = prettier,
     },
     format_on_save = {
       timeout_ms = 500,
