@@ -1,0 +1,11 @@
+on: [push, pull_request]
+
+jobs:
+  luacheck:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Luacheck Linter
+      uses: judaew/luacheck-action@v0.2.2
+        targets: ""
+        args: ""
