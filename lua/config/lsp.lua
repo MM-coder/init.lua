@@ -49,6 +49,7 @@ local servers = {
   hydra_lsp = {},
   gopls = {},
   ruff_lsp = {},
+  pylsp = {},
   -- rust_analyzer = {},
   -- tsserver = {},
   html = { filetypes = { 'html', 'twig', 'hbs' } },

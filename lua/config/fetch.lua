@@ -213,6 +213,10 @@ require('lazy').setup({
     opts = {
       -- configurations go here
     },
+    "hrsh7th/cmp-path",
+    "hrsh7th/cmp-buffer",
+    "hrsh7th/cmp-cmdline",
+    "hrsh7th/nvim-cmp"
   },
   {
     'nvimdev/dashboard-nvim',
