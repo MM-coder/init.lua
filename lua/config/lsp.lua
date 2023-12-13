@@ -50,7 +50,7 @@ local servers = {
   gopls = {},
   ruff_lsp = {},
   pylsp = {},
-  -- rust_analyzer = {},
+  rust_analyzer = {},
   -- tsserver = {},
   html = { filetypes = { 'html', 'twig', 'hbs' } },
   lua_ls = {
