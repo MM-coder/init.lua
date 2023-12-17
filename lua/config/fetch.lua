@@ -227,5 +227,6 @@ require('lazy').setup({
       }
     end,
     dependencies = { { 'nvim-tree/nvim-web-devicons' } }
-  }
+  },
+  "andweeb/presence.nvim"
 }, {})
