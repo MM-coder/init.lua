@@ -229,4 +229,5 @@ require('lazy').setup({
     dependencies = { { 'nvim-tree/nvim-web-devicons' } }
   },
   'leafOfTree/vim-svelte-plugin'
+  "andweeb/presence.nvim"
 }, {})
