@@ -60,6 +60,8 @@ local servers = {
       diagnostics = { disable = { 'missing-fields' } },
     },
   },
+  svelte = {},
+  tailwindcss = {},
 }
 
 -- Setup neovim lua configuration
