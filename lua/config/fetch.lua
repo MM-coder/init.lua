@@ -1,28 +1,32 @@
-local lazypath = vim.fn.stdpath 'data' .. '/lazy/lazy.nvim'
+-- bootstrap lazy.nvim
+local lazypath = vim.fn.stdpath('data') .. '/lazy/lazy.nvim'
+
 if not vim.loop.fs_stat(lazypath) then
-  vim.fn.system {
+  vim.fn.system({
     'git',
     'clone',
     '--filter=blob:none',
     'https://github.com/folke/lazy.nvim.git',
-    '--branch=stable', -- latest stable release
+    '--branch=stable',
     lazypath,
-  }
+  })
 end
+
 vim.opt.rtp:prepend(lazypath)
 
--- [[ Configure plugins ]]
--- NOTE: Here is where you install your plugins.
---  You can configure plugins using the `config` key.
---
---  You can also configure plugins after the setup call,
---    as they will be available in your neovim runtime.
 require('lazy').setup({
+
+  -- Core utilities
   'tpope/vim-fugitive',
   'tpope/vim-rhubarb',
   'tpope/vim-sleuth',
+  'wakatime/vim-wakatime',
+  'folke/trouble.nvim',
+
+  ---------------------------------------------------------------------------
+  -- LSP
+  ---------------------------------------------------------------------------
   {
-    -- LSP Configuration & Plugins
     'neovim/nvim-lspconfig',
     dependencies = {
       'williamboman/mason.nvim',
@@ -30,7 +34,22 @@ require('lazy').setup({
       { 'j-hui/fidget.nvim', opts = {} },
       'folke/neodev.nvim',
     },
+    config = function()
+      require('mason').setup()
+
+      require('mason-lspconfig').setup({
+        ensure_installed = {
+          'lua_ls',
+          'pyright',
+          'ruff',
+        },
+      })
+    end,
   },
+
+  ---------------------------------------------------------------------------
+  -- Completion
+  ---------------------------------------------------------------------------
   {
     'hrsh7th/nvim-cmp',
     dependencies = {
@@ -38,10 +57,20 @@ require('lazy').setup({
       'saadparwaiz1/cmp_luasnip',
       'hrsh7th/cmp-nvim-lsp',
       'hrsh7th/cmp-path',
+      'hrsh7th/cmp-buffer',
+      'hrsh7th/cmp-cmdline',
       'rafamadriz/friendly-snippets',
     },
   },
-  { 'folke/which-key.nvim',  opts = {} },
+
+  ---------------------------------------------------------------------------
+  -- Which-key
+  ---------------------------------------------------------------------------
+  { 'folke/which-key.nvim', opts = {} },
+
+  ---------------------------------------------------------------------------
+  -- Git
+  ---------------------------------------------------------------------------
   {
     'lewis6991/gitsigns.nvim',
     opts = {
@@ -52,182 +81,159 @@ require('lazy').setup({
         topdelete = { text = '‾' },
         changedelete = { text = '~' },
       },
-      on_attach = function(bufnr)
-        local gs = package.loaded.gitsigns
-        local function map(mode, l, r, opts)
-          opts = opts or {}
-          opts.buffer = bufnr
-          vim.keymap.set(mode, l, r, opts)
-        end
-        map({ 'n', 'v' }, ']c', function()
-          if vim.wo.diff then
-            return ']c'
-          end
-          vim.schedule(function()
-            gs.next_hunk()
-          end)
-          return '<Ignore>'
-        end, { expr = true, desc = 'Jump to next hunk' })
-
-        map({ 'n', 'v' }, '[c', function()
-          if vim.wo.diff then
-            return '[c'
-          end
-          vim.schedule(function()
-            gs.prev_hunk()
-          end)
-          return '<Ignore>'
-        end, { expr = true, desc = 'Jump to previous hunk' })
-        map('v', '<leader>hs', function()
-          gs.stage_hunk { vim.fn.line '.', vim.fn.line 'v' }
-        end, { desc = 'stage git hunk' })
-        map('v', '<leader>hr', function()
-          gs.reset_hunk { vim.fn.line '.', vim.fn.line 'v' }
-        end, { desc = 'reset git hunk' })
-        -- normal mode
-        map('n', '<leader>hs', gs.stage_hunk, { desc = 'git stage hunk' })
-        map('n', '<leader>hr', gs.reset_hunk, { desc = 'git reset hunk' })
-        map('n', '<leader>hS', gs.stage_buffer, { desc = 'git Stage buffer' })
-        map('n', '<leader>hu', gs.undo_stage_hunk, { desc = 'undo stage hunk' })
-        map('n', '<leader>hR', gs.reset_buffer, { desc = 'git Reset buffer' })
-        map('n', '<leader>hp', gs.preview_hunk, { desc = 'preview git hunk' })
-        map('n', '<leader>hb', function()
-          gs.blame_line { full = false }
-        end, { desc = 'git blame line' })
-        map('n', '<leader>hd', gs.diffthis, { desc = 'git diff against index' })
-        map('n', '<leader>hD', function()
-          gs.diffthis '~'
-        end, { desc = 'git diff against last commit' })
-
-        -- Toggles
-        map('n', '<leader>tb', gs.toggle_current_line_blame, { desc = 'toggle git blame line' })
-        map('n', '<leader>td', gs.toggle_deleted, { desc = 'toggle git show deleted' })
-
-        -- Text object
-        map({ 'o', 'x' }, 'ih', ':<C-U>Gitsigns select_hunk<CR>', { desc = 'select git hunk' })
-      end,
     },
   },
 
+  ---------------------------------------------------------------------------
+  -- Theme
+  ---------------------------------------------------------------------------
   {
-    "catppuccin/nvim",
-    name = "catppuccin",
+    'catppuccin/nvim',
+    name = 'catppuccin',
     priority = 1000,
     config = function()
-      vim.cmd.colorscheme 'catppuccin'
+      vim.cmd.colorscheme('catppuccin')
     end,
   },
+
+  ---------------------------------------------------------------------------
+  -- Statusline
+  ---------------------------------------------------------------------------
   {
-    -- Set lualine as statusline
     'nvim-lualine/lualine.nvim',
-    -- See `:help lualine.txt`
     opts = {
       options = {
         icons_enabled = true,
-        theme = 'catppuccin',
-        component_separators = '|',
-        section_separators = '',
+        theme = 'auto',
+        component_separators = { left = '|', right = '|' },
+        section_separators = { left = '', right = '' },
       },
     },
   },
-  -- Add some basic iconography for the lualine
+
+  ---------------------------------------------------------------------------
+  -- Icons
+  ---------------------------------------------------------------------------
   {
     'nvim-tree/nvim-web-devicons',
     config = function()
-      require('nvim-web-devicons').setup {
-        default = true,
-      }
+      require('nvim-web-devicons').setup({ default = true })
     end,
   },
+
+  ---------------------------------------------------------------------------
+  -- Copilot
+  ---------------------------------------------------------------------------
   {
-    "zbirenbaum/copilot.lua",
-    cmd = "Copilot",
-    event = "InsertEnter",
+    'zbirenbaum/copilot.lua',
+    cmd = 'Copilot',
+    event = 'InsertEnter',
     config = function()
-      require("copilot").setup(
-        {
-          suggestion = {
-            auto_trigger = true
-          }
-        }
-      )
-    end
+      require('copilot').setup({
+        suggestion = { auto_trigger = true },
+      })
+    end,
   },
+
+  ---------------------------------------------------------------------------
+  -- Formatting
+  ---------------------------------------------------------------------------
   {
-    "stevearc/conform.nvim",
-    opts = {}
+    'stevearc/conform.nvim',
+    opts = {},
   },
+
+  ---------------------------------------------------------------------------
+  -- Indentation guides
+  ---------------------------------------------------------------------------
   {
-    -- Add indentation guides even on blank lines
     'lukas-reineke/indent-blankline.nvim',
-    -- Enable `lukas-reineke/indent-blankline.nvim`
-    -- See `:help ibl`
     main = 'ibl',
     opts = {},
   },
 
-  -- "gc" to comment visual regions/lines
-  { 'numToStr/Comment.nvim', opts = {} },
+  ---------------------------------------------------------------------------
+  -- Comments
+  ---------------------------------------------------------------------------
+  {
+    'numToStr/Comment.nvim',
+    opts = {},
+  },
 
-  -- Fuzzy Finder (files, lsp, etc)
+  ---------------------------------------------------------------------------
+  -- Telescope
+  ---------------------------------------------------------------------------
   {
     'nvim-telescope/telescope.nvim',
     branch = '0.1.x',
     dependencies = {
       'nvim-lua/plenary.nvim',
-      -- Fuzzy Finder Algorithm which requires local dependencies to be built.
-      -- Only load if `make` is available. Make sure you have the system
-      -- requirements installed.
       {
         'nvim-telescope/telescope-fzf-native.nvim',
-        -- NOTE: If you are having trouble with this installation,
-        --       refer to the README for telescope-fzf-native for more instructions.
         build = 'make',
         cond = function()
-          return vim.fn.executable 'make' == 1
+          return vim.fn.executable('make') == 1
         end,
       },
     },
   },
+
+  ---------------------------------------------------------------------------
+  -- Treesitter
+  ---------------------------------------------------------------------------
   {
-    -- Highlight, edit, and navigate code
     'nvim-treesitter/nvim-treesitter',
+    lazy = false,
+    build = ':TSUpdate',
     dependencies = {
       'nvim-treesitter/nvim-treesitter-textobjects',
     },
-    build = ':TSUpdate',
+    config = function()
+      require('nvim-treesitter').setup({
+        ensure_installed = { 'c', 'cpp', 'go', 'lua', 'python', 'rust', 'tsx', 'javascript', 'typescript', 'vimdoc', 'vim', 'bash' },
+        auto_install = true,
+        highlight = { enable = true },
+        indent = { enable = true },
+      })
+    end,
   },
+
+  ---------------------------------------------------------------------------
+  -- Mini
+  ---------------------------------------------------------------------------
   {
     'echasnovski/mini.nvim',
-    version = ''
+    version = false,
   },
-  'wakatime/vim-wakatime',
-  'folke/trouble.nvim',
-  {
-    "utilyre/barbecue.nvim",
-    name = "barbecue",
-    version = "*",
-    dependencies = {
-      "SmiteshP/nvim-navic",
-    },
-    opts = {
-      -- configurations go here
-    },
-    "hrsh7th/cmp-path",
-    "hrsh7th/cmp-buffer",
-    "hrsh7th/cmp-cmdline",
-    "hrsh7th/nvim-cmp"
-  },
+
+  ---------------------------------------------------------------------------
+  -- Dashboard
+  ---------------------------------------------------------------------------
   {
     'nvimdev/dashboard-nvim',
     event = 'VimEnter',
+    dependencies = { 'nvim-tree/nvim-web-devicons' },
     config = function()
-      require('dashboard').setup {
-        -- config
-      }
+      require('dashboard').setup({})
     end,
-    dependencies = { { 'nvim-tree/nvim-web-devicons' } }
   },
-  'leafOfTree/vim-svelte-plugin'
-  "andweeb/presence.nvim"
+
+  ---------------------------------------------------------------------------
+  -- Svelte
+  ---------------------------------------------------------------------------
+  'leafOfTree/vim-svelte-plugin',
+
+  ---------------------------------------------------------------------------
+  -- Barbecue (FIXED)
+  ---------------------------------------------------------------------------
+  {
+    'utilyre/barbecue.nvim',
+    name = 'barbecue',
+    version = '*',
+    dependencies = {
+      'SmiteshP/nvim-navic',
+    },
+    opts = {},
+  },
+
 }, {})

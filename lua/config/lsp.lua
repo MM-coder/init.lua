@@ -1,158 +1,122 @@
--- [[ Configure LSP ]]
---  This function gets run when an LSP connects to a particular buffer.
+-- =========================
+-- LSP KEYMAPS
+-- =========================
 local on_attach = function(_, bufnr)
   local nmap = function(keys, func, desc)
-    if desc then
-      desc = 'LSP: ' .. desc
-    end
-
-    vim.keymap.set('n', keys, func, { buffer = bufnr, desc = desc })
+    vim.keymap.set('n', keys, func, { buffer = bufnr, desc = 'LSP: ' .. desc })
   end
 
-  nmap('<leader>rn', vim.lsp.buf.rename, '[R]e[n]ame')
-  nmap('<leader>ca', vim.lsp.buf.code_action, '[C]ode [A]ction')
+  nmap('<leader>rn', vim.lsp.buf.rename, 'Rename')
+  nmap('<leader>ca', vim.lsp.buf.code_action, 'Code Action')
 
+  nmap('K', vim.lsp.buf.hover, 'Hover')
+  nmap('gD', vim.lsp.buf.declaration, 'Declaration')
 
-  nmap('gr', require('telescope.builtin').lsp_references, '[G]oto [R]eferences')
-  nmap('gI', require('telescope.builtin').lsp_implementations, '[G]oto [I]mplementation')
-  nmap('<leader>D', require('telescope.builtin').lsp_type_definitions, 'Type [D]efinition')
-  nmap('<leader>ds', require('telescope.builtin').lsp_document_symbols, '[D]ocument [S]ymbols')
-  nmap('<leader>ws', require('telescope.builtin').lsp_dynamic_workspace_symbols, '[W]orkspace [S]ymbols')
-
-  -- See `:help K` for why this keymap
-  nmap('K', vim.lsp.buf.hover, 'Hover Documentation')
-  nmap('<C-k>', vim.lsp.buf.signature_help, 'Signature Documentation')
-
-  -- Lesser used LSP functionality
-  nmap('gD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
-  nmap('<leader>wa', vim.lsp.buf.add_workspace_folder, '[W]orkspace [A]dd Folder')
-  nmap('<leader>wr', vim.lsp.buf.remove_workspace_folder, '[W]orkspace [R]emove Folder')
-  nmap('<leader>wl', function()
-    print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
-  end, '[W]orkspace [L]ist Folders')
-
-  -- Create a command `:Format` local to the LSP buffer
-  vim.api.nvim_buf_create_user_command(bufnr, 'Format', function(_)
-    vim.lsp.buf.format()
-  end, { desc = 'Format current buffer with LSP' })
+  local telescope = require('telescope.builtin')
+  nmap('gr', telescope.lsp_references, 'References')
+  nmap('gi', telescope.lsp_implementations, 'Implementations')
+  nmap('<leader>ds', telescope.lsp_document_symbols, 'Document Symbols')
 end
 
-
--- mason-lspconfig requires that these setup functions are called in this order
--- before setting up the servers.
-require('mason').setup()
-require('mason-lspconfig').setup()
-
-local servers = {
-  -- clangd = {},
-  jsonls = {},
-  hydra_lsp = {},
-  gopls = {},
-  ruff_lsp = {},
-  pylsp = {},
-  rust_analyzer = {},
-  -- tsserver = {},
-  html = { filetypes = { 'html', 'twig', 'hbs' } },
-  lua_ls = {
-    Lua = {
-      workspace = { checkThirdParty = false },
-      telemetry = { enable = false },
-      diagnostics = { disable = { 'missing-fields' } },
-    },
-  },
-  svelte = {},
-  tailwindcss = {},
-}
-
--- Setup neovim lua configuration
-require('neodev').setup()
-
--- nvim-cmp supports additional completion capabilities, so broadcast that to servers
+-- =========================
+-- CAPABILITIES (nvim-cmp)
+-- =========================
 local capabilities = vim.lsp.protocol.make_client_capabilities()
 capabilities = require('cmp_nvim_lsp').default_capabilities(capabilities)
 
--- Ensure the servers above are installed
-local mason_lspconfig = require 'mason-lspconfig'
+-- =========================
+-- NEODEV (Lua)
+-- =========================
+require('neodev').setup()
 
-mason_lspconfig.setup {
-  ensure_installed = vim.tbl_keys(servers),
-}
+-- =========================
+-- LSP SERVERS (NEW API)
+-- =========================
+vim.lsp.config('lua_ls', {
+  capabilities = capabilities,
+  on_attach = on_attach,
+  settings = {
+    Lua = {
+      workspace = { checkThirdParty = false },
+      telemetry = { enable = false },
+    },
+  },
+})
 
-mason_lspconfig.setup_handlers {
-  function(server_name)
-    require('lspconfig')[server_name].setup {
-      capabilities = capabilities,
-      on_attach = on_attach,
-      settings = servers[server_name],
-      filetypes = (servers[server_name] or {}).filetypes,
-    }
-  end,
-}
+vim.lsp.config('pyright', {
+  capabilities = capabilities,
+  on_attach = on_attach,
+})
 
--- [[ Configure nvim-cmp ]]
--- See `:help cmp`
-local cmp = require 'cmp'
-local luasnip = require 'luasnip'
+vim.lsp.config('ruff', {
+  capabilities = capabilities,
+  on_attach = on_attach,
+})
+
+vim.lsp.config('gopls', {
+  capabilities = capabilities,
+  on_attach = on_attach,
+})
+
+vim.lsp.config('rust_analyzer', {
+  capabilities = capabilities,
+  on_attach = on_attach,
+})
+
+vim.lsp.config('html', {
+  capabilities = capabilities,
+  on_attach = on_attach,
+})
+
+vim.lsp.config('svelte', {
+  capabilities = capabilities,
+  on_attach = on_attach,
+})
+
+vim.lsp.config('tailwindcss', {
+  capabilities = capabilities,
+  on_attach = on_attach,
+})
+
+-- =========================
+-- ENABLE SERVERS
+-- =========================
+vim.lsp.enable({
+  'lua_ls',
+  'pyright',
+  'ruff',
+  'gopls',
+  'rust_analyzer',
+  'html',
+  'svelte',
+  'tailwindcss',
+})
+
+-- =========================
+-- CMP
+-- =========================
+local cmp = require('cmp')
+local luasnip = require('luasnip')
+
 require('luasnip.loaders.from_vscode').lazy_load()
-luasnip.config.setup {}
 
-cmp.setup {
+cmp.setup({
   snippet = {
     expand = function(args)
       luasnip.lsp_expand(args.body)
     end,
   },
-  completion = {
-    completeopt = 'menu,menuone,noinsert'
-  },
-  mapping = cmp.mapping.preset.insert {
+
+  mapping = cmp.mapping.preset.insert({
     ['<C-n>'] = cmp.mapping.select_next_item(),
     ['<C-p>'] = cmp.mapping.select_prev_item(),
-    ['<C-d>'] = cmp.mapping.scroll_docs(-4),
-    ['<C-f>'] = cmp.mapping.scroll_docs(4),
-    ['<C-Space>'] = cmp.mapping.complete {},
-    ['<CR>'] = cmp.mapping.confirm {
-      behavior = cmp.ConfirmBehavior.Replace,
-      select = true,
-    },
-    ['<Tab>'] = cmp.mapping(function(fallback)
-      if cmp.visible() then
-        cmp.select_next_item()
-      elseif luasnip.expand_or_locally_jumpable() then
-        luasnip.expand_or_jump()
-      else
-        fallback()
-      end
-    end, { 'i', 's' }),
-    ['<S-Tab>'] = cmp.mapping(function(fallback)
-      if cmp.visible() then
-        cmp.select_prev_item()
-      elseif luasnip.locally_jumpable(-1) then
-        luasnip.jump(-1)
-      else
-        fallback()
-      end
-    end, { 'i', 's' }),
-  },
+    ['<CR>'] = cmp.mapping.confirm({ select = true }),
+  }),
+
   sources = {
     { name = 'nvim_lsp' },
     { name = 'luasnip' },
     { name = 'path' },
   },
-}
-
-cmp.setup.cmdline({ '/', '?' }, {
-  mapping = cmp.mapping.preset.cmdline(),
-  sources = {
-    { name = 'buffer' }
-  }
 })
 
-cmp.setup.cmdline(':', {
-  mapping = cmp.mapping.preset.cmdline(),
-  sources = cmp.config.sources({
-    { name = 'path' }
-  }, {
-    { name = 'cmdline' }
-  })
-})
